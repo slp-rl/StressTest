@@ -1,4 +1,2 @@
-from .inference_client_qwen2_audio import InferenceClientQwen2Audio
-from .inference_client_gpt_audio_lm import InferenceClientGPTAudio
 from .inference_mock_client import MockInferenceClient
 from .inference_client_base import InferenceClientBase

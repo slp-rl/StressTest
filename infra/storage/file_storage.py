@@ -4,7 +4,10 @@ from pathlib import Path
 
 
 class FileStorage:
-    def __init__(self, storage_path):
+    def __init__(self, storage_path, create_if_not_exists=True):
+        if create_if_not_exists:
+            if not os.path.exists(storage_path):
+                Path(storage_path).mkdir(parents=True, exist_ok=True)
         assert os.path.exists(storage_path), f"Path {storage_path} does not exist"
         self.storage_path = storage_path
 

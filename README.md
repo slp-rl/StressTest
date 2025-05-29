@@ -41,24 +41,6 @@ pip install -r requirements.txt
 
 ## 📊 Evaluation
 
-### 🗂 Folder Setup
-
-Make sure to create a `results/` folder at the project root to store evaluation outputs:
-
-```bash
-mkdir results
-```
-The expected directory structure is:
-
-
-```
-StressTest
-├── infra
-├── stresstest
-│   └── evaluation
-└── results
-```
-
 
 ### ✅ Running the Evaluations
 
@@ -85,6 +67,18 @@ python -m stresstest.evaluation.main \
 
 You can change the `--task` flag to `ssd` for the Sentence Stress Detection task.
 `--model_to_evaluate` can be one of the following `["stresslm", "qwen2audio", "gpt-4o-audio", "mock"]`.
+
+the script will create a `results/` directory at the project root to store evaluation outputs.
+The expected project structure is:
+
+```
+StressTest
+├── infra
+├── stresstest
+│   └── evaluation
+└── results
+```
+
 
 ---
 

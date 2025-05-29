@@ -1,0 +1,14 @@
+torch==2.6.0
+librosa==0.10.2.post1
+soundfile==0.12.1
+peft==0.14.0
+accelerate==1.2.1
+transformers==4.51.3
+evaluate==0.4.3
+datasets==3.2.0
+pydantic==2.10.6
+pydantic-settings==2.8.0
+openai==1.58.1
+tqdm==4.67.1
+numpy==1.26.4
+PyYAML==6.0.2

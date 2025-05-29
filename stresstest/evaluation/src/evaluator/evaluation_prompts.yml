@@ -1,0 +1,21 @@
+EVALUATION_PROMPT_POOL:
+    - 
+        prompt_id: 1
+        prompt_template: |-
+            Out of the following answers, according to the speaker's stressed words, what is most likely the underlying intention of the speaker?
+            1. {answer_1}
+            2. {answer_2}
+            Answer:
+    -
+        prompt_id: 2
+        prompt_template: |-
+            The speaker said "{transcription}". 
+            According to the audio, what words did the speaker stress?
+            Answer format: [stressed_word_1, ...]
+            Answer: 
+
+EVALUATOR_INPUT_TEMPLATE: |
+  INPUT TO AUDIO-LLM:
+      {input_prompt}
+  OUTPUT FROM AUDIO-LLM:
+      {audio_llm_output}

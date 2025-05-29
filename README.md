@@ -131,10 +131,5 @@ Stay tuned!
 If you use this work, please cite our paper:
 
 ```bibtex
-@inproceedings{your2025stresstest,
-  title={StressTest: Can YOUR Speech LM Handle the Stress?},
-  author={Your, Name and Collaborator, Name and More, Authors},
-  booktitle={Proceedings of Interspeech},
-  year={2025}
-}
+Soon.
 ```

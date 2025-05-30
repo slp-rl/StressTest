@@ -25,7 +25,6 @@ class EvaluatorStressReasoning(EvaluationTaskBase):
         self.dataset: Dataset = load_dataset(
             configs.STRESS_TEST_DS,
             split="test",
-            token=configs.HF_API_TOKEN,
         )
         self.prompt_template_pool: AudioLLMPromptPool = self.prompter.create_prompt_template_pool()
         self.prompt_template: AudioLLMPrompt = self.prompt_template_pool.get_prompt_by_id(prompt_id=self.prompt_id)

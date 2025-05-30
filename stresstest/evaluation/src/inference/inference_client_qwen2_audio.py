@@ -20,12 +20,12 @@ class InferenceClientQwen2Audio(InferenceClientBase):
 
         if stresslm:
             self.logger.info(f"Loading {self.stresslm_model_name} model from hub")
-            peft_config = PeftConfig.from_pretrained(self.stresslm_model_name, token=configs.HF_API_TOKEN)
+            peft_config = PeftConfig.from_pretrained(self.stresslm_model_name)
             base_model = Qwen2AudioForConditionalGeneration.from_pretrained(
                 peft_config.base_model_name_or_path,
                 device_map="cuda"
             )
-            self.model = PeftModel.from_pretrained(base_model, self.stresslm_model_name, token=configs.HF_API_TOKEN)
+            self.model = PeftModel.from_pretrained(base_model, self.stresslm_model_name)
         else:
             self.logger.info(f"Loading model {self.model_name}")
             self.model = Qwen2AudioForConditionalGeneration.from_pretrained(

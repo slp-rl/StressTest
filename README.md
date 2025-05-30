@@ -125,5 +125,13 @@ Stay tuned!
 If you use this work, please cite our paper:
 
 ```bibtex
-Soon.
+@misc{yosha2025stresstest,
+      title={StressTest: Can YOUR Speech LM Handle the Stress?}, 
+      author={Iddo Yosha and Gallil Maimon and Yossi Adi},
+      year={2025},
+      eprint={2505.22765},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2505.22765}, 
+}
 ```

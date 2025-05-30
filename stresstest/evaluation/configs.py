@@ -7,7 +7,6 @@ CURRENT_DIR = Path(__file__).resolve().parent
 
 class Settings(BaseSettings):
     OPENAI_API_KEY: str = "your_openai_api_key"
-    HF_API_TOKEN: str = "your_hf_api_token"
     PROMPT_CONFIG_PATH: str = str(CURRENT_DIR / "src/evaluator/evaluation_prompts.yml")
     JUDGE_MODEL_NAME: str = "gpt-4o"
     RESULTS_PATH: str = str(CURRENT_DIR.parent.parent / "results")

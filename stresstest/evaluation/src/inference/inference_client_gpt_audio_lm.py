@@ -53,7 +53,7 @@ class InferenceClientGPTAudio(InferenceClientBase):
         encoded_audio = base64.b64encode(wav_bytes).decode("utf-8")
         return encoded_audio
 
-    def prepapre(self, text_prompt, audio, **kwargs):
+    def prepare(self, text_prompt, audio, **kwargs):
         # Prepare the audio
         encoded_audio = self.prepare_audio(audio)
         conversation = self.model_conversation_template(text_prompt, encoded_audio)

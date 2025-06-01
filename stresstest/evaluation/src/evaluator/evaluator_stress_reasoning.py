@@ -66,7 +66,7 @@ class EvaluatorStressReasoning(EvaluationTaskBase):
             )
 
             # prepare input for inference
-            pred_input = self.inference_client.prepapre(
+            pred_input = self.inference_client.prepare(
                 text_prompt=input_prompt,
                 audio=sample["audio"],
                 sample_idx=sample_idx,

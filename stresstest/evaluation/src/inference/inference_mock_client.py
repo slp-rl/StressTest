@@ -5,7 +5,7 @@ class MockInferenceClient(InferenceClientBase):
     def predict(self, *args, **kwargs) -> str:
         return "2. The answer is two."
     
-    def prepapre(self, *args, **kwargs) -> dict:
+    def prepare(self, *args, **kwargs) -> dict:
         return {
             "text": """What is the answer to this question? 
                 1. The answer is one. 

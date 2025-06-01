@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 class InferenceClientBase(ABC):
 
     @abstractmethod
-    def prepapre(self, *args, **kwargs) -> dict:
+    def prepare(self, *args, **kwargs) -> dict:
         """
         Prepare method to be implemented by subclasses. 
         This method should return a dictionary with the necessary inputs for the predict method.

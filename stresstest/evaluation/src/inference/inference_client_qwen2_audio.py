@@ -53,7 +53,7 @@ class InferenceClientQwen2Audio(InferenceClientBase):
             ]},
         ]
 
-    def prepapre(self, text_prompt, audio, **kwargs):
+    def prepare(self, text_prompt, audio, **kwargs):
         conversation = self.model_conversation_template(text_prompt, audio['path'])
         text = self.processor.apply_chat_template(conversation, add_generation_prompt=True, tokenize=False)
         audio_resample = librosa.resample(

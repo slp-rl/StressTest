@@ -17,11 +17,11 @@ It includes:
 * Evaluation of our proposed model **StresSLM**.
 * Examples to run evaluation with two additional models.
 
+It also includes **Stress-17K** training data loading and augmentation script used to train **StresSLM**.
+
 <p align="center">
   <img src="imgs/main_fig1.png" alt="StressTest Overview" width="100%" />
 </p>
-
-Training code coming soon...
 
 ---
 
@@ -109,14 +109,46 @@ Then, register your model by updating the configs.py and clients.py files in the
 
 ---
 
-## 🏋️‍♂️ Training (Coming Soon)
+## 🏋️‍♂️ Training
 
-We will release:
+We release:
 
-* The synthetic training data `Stress-17K` used to train StresSLM.
-* The training script for finetuning on SSD and SSR.
+* The synthetic training data `Stress-17K` used to train StresSLM (released).
+* The training script for finetuning on SSD and SSR (coming soon).
 
 Stay tuned!
+
+### 🧪 Synthetic Training Data — `Stress-17K`
+
+We release `Stress-17K`, a synthetic dataset generated via our proposed pipeline. It supports multi-task instruction tuning across four task types to improve performance on SSD and SSR tasks.
+
+The raw pre-augmented dataset is available on 🤗 Hugging Face under: [`slprl/Stress-17K-raw`](https://huggingface.co/datasets/slprl/Stress-17K-raw-pre-augmentation) and is automatically downloaded by the augmentation script.
+
+#### 🔄 Usage Example
+
+You can use the `DatasetAugmentation` class to load, structure, and augment the data:
+
+```python
+from data_augmentation import DatasetAugmentation
+
+data_augmentation = DatasetAugmentation(n_proc=8)
+data_augmentation.train_test_split(test_size=0.15)
+data_augmentation.prepare_structure_for_augmentation()
+data_augmentation.augment_with_training_prompts(tasks='all')
+augmented_dataset = data_augmentation.get_augmented_dataset()
+```
+
+The augmentation utilities are available under:
+
+```
+StressTest
+├── infra
+├── stresstest
+│   └── training
+│       └── stress_17k
+```
+
+Each sample can be augmented into multiple instruction-following formats defined in a YAML configuration. This YAML file is also located in the `stress_17k` directory and can be edited to add new tasks or modify existing ones.
 
 ---
 

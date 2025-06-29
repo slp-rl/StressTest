@@ -1,0 +1,44 @@
+# PRECISE ANSWER - E2E
+- TASK: e2e_stress_meaning
+  id: 1
+  question: |
+    Out of the following answers, according to the speaker's stressed words, what is most likely the underlying intention of the speaker?
+    1. {answer_1} 
+    2. {answer_2} 
+    Answer:
+  answer: |
+    {answer_label}. {correct_answer}
+
+# ELABORATED ANSWER
+- TASK: elaborated_explanation
+  id: 2
+  question: |
+    According to the speaker's stressed words, what is the speaker's underlying intention? 
+    1. {answer_1} 
+    2. {answer_2} 
+    Elaborate, then answer in the following way: "answer_number. correct_answer"
+  answer: |
+    {description} Therefore, the correct answer is: {answer_label}. {correct_answer}
+
+# STRESS CASCADE REASONING
+- TASK: cascade_reasoning
+  id: 3
+  question: |
+    The speaker stressed some words. What is the speaker trying to communicate? 
+    1. {answer_1} 
+    2. {answer_2} 
+    Think about the transcription and the stressed words. Then, answer like this: "answer_number. correct_answer"
+  answer: |
+    The speaker said "{transcription}" and emphasized "{emphasized_words}".
+    Therefore, the correct answer is: {answer_label}. {correct_answer}
+
+# STRESS DETECTION
+- TASK: stress_detection
+  id: 4
+  question: |
+    The speaker said "{transcription}". 
+    According to the audio, what words did the speaker stress?
+    Answer format: [stressed_word_1, ...]
+    Answer: 
+  answer: |
+    {emphasized_words}

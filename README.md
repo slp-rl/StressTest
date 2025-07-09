@@ -122,7 +122,7 @@ Stay tuned!
 
 We release `Stress-17K`, a synthetic dataset generated via our proposed pipeline. It supports multi-task instruction tuning across four task types to improve performance on SSD and SSR tasks.
 
-The raw pre-augmented dataset is available on 🤗 Hugging Face under: [`slprl/Stress-17K-raw`](https://huggingface.co/datasets/slprl/Stress-17K-raw-pre-augmentation) and is automatically downloaded by the augmentation script.
+The raw pre-augmented dataset is available on 🤗 Hugging Face under: [`slprl/Stress-17K-raw`](https://huggingface.co/datasets/slprl/Stress-17K-raw) and is automatically downloaded by the augmentation script.
 
 #### 🔄 Usage Example
 

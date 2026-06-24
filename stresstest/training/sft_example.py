@@ -117,8 +117,7 @@ def train():
 
     if report_to == 'wandb':
         wandb.login(key=wandb_api_key)
-        # wandb.init(project='stresSLM-sft', name=args.experiment_name)
-        wandb.init(project='stressLM-qwen-sft', entity='iy-space', name=args.experiment_name)
+        wandb.init(project='stresSLM-sft', name=args.experiment_name)
     
     # print trainable parameters
     print(f'Model: {model}')

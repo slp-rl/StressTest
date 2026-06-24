@@ -4,22 +4,23 @@ import librosa
 from transformers import Qwen2AudioForConditionalGeneration, AutoProcessor
 from peft import PeftModel, PeftConfig
 from infra.logger import Logger
-from ...configs import configs
 from .inference_client_base import InferenceClientBase
 
 
 class InferenceClientQwen2Audio(InferenceClientBase):
 
     model_name = "Qwen/Qwen2-Audio-7B-Instruct"
-    stresslm_model_name = "slprl/StresSLM"
+    # stresslm_model_name = "/cs/labs/adiyoss/yosha/dev/StressTest/stresstest/training/sft/results/exp/original_tasks/staged_training/stresslm-with-original-tasks-lr7e-05-bs8-gac-2-steps-1595-changeafter-1261-scosine-freeztower-false-exp-original_tasks_staged_1407_modify_ratio_true/checkpoint-1595" # "slprl/StresSLM"
+    # stresslm_model_name = 
 
-    def __init__(self, logger: Logger, stresslm: bool = False):
+    def __init__(self, logger: Logger, stresslm: bool = False, stresslm_model_checkpoint: str = "slprl/StresSLM"):
         self.logger = logger
 
         self.processor = AutoProcessor.from_pretrained(self.model_name)
+        self.stresslm_model_name = stresslm_model_checkpoint
 
         if stresslm:
-            self.logger.info(f"Loading {self.stresslm_model_name} model from hub")
+            self.logger.info(f"Loading {self.stresslm_model_name} model")
             peft_config = PeftConfig.from_pretrained(self.stresslm_model_name)
             base_model = Qwen2AudioForConditionalGeneration.from_pretrained(
                 peft_config.base_model_name_or_path,

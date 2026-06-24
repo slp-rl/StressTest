@@ -1,19 +1,23 @@
 import re
 from tqdm import tqdm
 import evaluate
-from datasets import Dataset, load_dataset
+from datasets import Dataset, load_dataset, Audio
 from ...configs import configs
 from ...clients import storage_client, logger, inference_client
 from ..data_models import AudioLLMPrompt, AudioLLMPromptPool
-from ..agents import EvaluatorBase, OpenAIEvaluatorAgent
+from ..agents import EvaluatorBase, OpenAIEvaluatorAgent, EvaluatorStresSLMDetection
 from .prompter import Prompter
 
-
+STRESS_DS_MAP = {
+    "slprl/StressTest": "StressTest",
+    "slprl/StressPresso": "StressPresso",
+}
 
 class EvaluatorStressDetection:
 
     evaluation_agents = {
         "judge": lambda logger: OpenAIEvaluatorAgent(logger=logger, prompt_path="evaluator_stress_detection.yml"),
+        "stresslm_custom": lambda logger: EvaluatorStresSLMDetection(logger=logger)
     }
     prompt_id = 2
 
@@ -29,7 +33,7 @@ class EvaluatorStressDetection:
         self.precision_metric = evaluate.load("precision")
         self.recall_metric = evaluate.load("recall")
         self.f1_metric = evaluate.load("f1")
-        self.results_file_path = f"{configs.MODEL_TO_EVALUATE}_evaluation_ssd.json"
+        self.results_file_path = f"{configs.MODEL_TO_EVALUATE}_{STRESS_DS_MAP[configs.STRESS_TEST_DS]}_evaluation_ssd.json"
 
     def prepare_dataset(self):
         dataset: Dataset = load_dataset(
@@ -39,11 +43,11 @@ class EvaluatorStressDetection:
         dataset = dataset.map(
             lambda x: {"stress_labels": x['stress_pattern']['binary']}
         )
+        dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
         return dataset
 
-
     def _evaluate_model_answer(self, input_prompt: str, audio_llm_output: str):
-        evaluation_prompt_kwargs = self.prompter.get_model_evaluation_input_prompt(
+        evaluation_prompt_kwargs = self.prompter.get_model_evaluation_input_kwargs(
             input_prompt=input_prompt, audio_llm_output=audio_llm_output
         )
         return self.evaluator_agent.evaluate_answer(**evaluation_prompt_kwargs)
@@ -66,7 +70,6 @@ class EvaluatorStressDetection:
         # Normalize each string in the list
         normalized_list = [self.normalize_sentence(item) for item in lst]
         return normalized_list
-
 
     def make_inference(self):
         self.logger.info(f"Making inference for prompt: {self.prompt_template.id}")
@@ -158,10 +161,10 @@ class EvaluatorStressDetection:
             "task": "SSD",
             "dataset": configs.STRESS_TEST_DS,
             "prompt_id": self.prompt_template.id,
-            "description": f"StessTest results for {configs.MODEL_TO_EVALUATE} on {configs.STRESS_TEST_DS} with evaluator {self.evaluator_type}",
+            "description": f"{STRESS_DS_MAP[configs.STRESS_TEST_DS]} results for {configs.MODEL_TO_EVALUATE} on {configs.STRESS_TEST_DS} with evaluator {self.evaluator_type}",
             "ssd_metrics": ssd_metrics,
         }
         self.logger.info(f"Results: {results}")
-        file_path = f"{configs.MODEL_TO_EVALUATE}_evaluation_metrics_ssd.json"
+        file_path = f"{configs.MODEL_TO_EVALUATE}_{STRESS_DS_MAP[configs.STRESS_TEST_DS]}_evaluation_metrics_ssd.json"
         storage_client.save_json(file_name=file_path, data=results)
         return results

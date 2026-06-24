@@ -1,7 +1,5 @@
-import openai
+from openai import OpenAI
 import yaml
-import json
-import re
 from pathlib import Path
 from infra.logger import Logger
 from ...configs import configs
@@ -15,6 +13,7 @@ class OpenAIEvaluatorAgent(EvaluatorBase):
         self.logger = logger
         self.system_prompt, self.user_prompt_template = self._load_prompts(prompt_path)
         self.logger.info("Initialized OpenAIEvaluatorAgent judge.")
+        self.client = OpenAI(api_key=configs.OPENAI_API_KEY)
 
     def _load_prompts(self, prompt_path: str):
         path = Path(__file__).parent / prompt_path
@@ -22,10 +21,11 @@ class OpenAIEvaluatorAgent(EvaluatorBase):
             content = yaml.safe_load(f)
             return content["system_prompt"], content["user_prompt"]
 
-    def evaluate_answer(self, input_prompt: str, audio_llm_output: str, num_retries: int = 3) -> EvaluationTaskOutput:
+    def evaluate_answer(self, input_prompt: str, audio_llm_output: str, num_retries: int = 3, open_ended_kwargs: dict = None) -> EvaluationTaskOutput:
         user_message = self.user_prompt_template.format(
             input_prompt=input_prompt,
-            audio_llm_output=audio_llm_output
+            audio_llm_output=audio_llm_output,
+            **(open_ended_kwargs or {})
         )
         messages = [
             {"role": "system", "content": self.system_prompt},
@@ -34,7 +34,7 @@ class OpenAIEvaluatorAgent(EvaluatorBase):
 
         while num_retries > 0:
             try:
-                response = openai.chat.completions.create(
+                response = self.client.chat.completions.create(
                     model=configs.JUDGE_MODEL_NAME,
                     messages=messages,
                     temperature=0,

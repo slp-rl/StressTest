@@ -24,8 +24,8 @@ class Prompter:
             audio_llm_prompts.append(audio_llm_prompt)
         return AudioLLMPromptPool(prompts=audio_llm_prompts)
 
-    def get_model_evaluation_input_prompt(self, input_prompt, audio_llm_output):
-        return { 'input_prompt': input_prompt, 'audio_llm_output': audio_llm_output }
+    def get_model_evaluation_input_kwargs(self, input_prompt, audio_llm_output, open_ended_kwargs=None):
+        return { 'input_prompt': input_prompt, 'audio_llm_output': audio_llm_output, 'open_ended_kwargs': open_ended_kwargs }
 
     def create_model_input_prompt(self, 
             prompt_template: str, 

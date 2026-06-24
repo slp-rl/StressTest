@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from datasets import Dataset, load_dataset
+from datasets import Dataset, load_dataset, Audio
 from ...configs import configs
 from ...clients import storage_client, logger, inference_client
 from ..data_models import AudioLLMPrompt, AudioLLMPromptPool
@@ -7,15 +7,26 @@ from ..agents import EvaluatorBase, OpenAIEvaluatorAgent, EvaluatorStresSLMReaso
 from .prompter import Prompter
 from .evaluation_task_base import EvaluationTaskBase
 
+STRESS_DS_MAP = {
+    "slprl/StressTest": "StressTest",
+    "slprl/StressPresso": "StressPresso",
+}
 
 
 class EvaluatorStressReasoning(EvaluationTaskBase):
 
     evaluation_agents = {
-        "judge": lambda logger: OpenAIEvaluatorAgent(logger=logger, prompt_path="evaluator_stress_reasoning.yml"),
-        "stresslm_custom": lambda logger: EvaluatorStresSLMReasoning(logger=logger),
+        "judge": {
+            "ssr_accuracy": lambda logger: OpenAIEvaluatorAgent(logger=logger, prompt_path="evaluator_ssr_accuracy.yml"),
+            "open_ssr": lambda logger: OpenAIEvaluatorAgent(logger=logger, prompt_path="evaluator_open_ssr.yml"),
+        },
+        "stresslm_custom": {"ssr_accuracy": lambda logger: EvaluatorStresSLMReasoning(logger=logger)},
     }
-    prompt_id = 1
+    task_to_prompt_id = {
+        "ssr_accuracy": 1,
+        "open_ssr": 3,
+    }
+    
 
     def __init__(self, evaluator_type: str = 'judge'):
         self.evaluator_type = evaluator_type
@@ -26,23 +37,27 @@ class EvaluatorStressReasoning(EvaluationTaskBase):
             configs.STRESS_TEST_DS,
             split="test",
         )
+        self.prompt_id = self.task_to_prompt_id.get(configs.TASK)
+        self.dataset = self.dataset.cast_column("audio", Audio(sampling_rate=16000))
         self.prompt_template_pool: AudioLLMPromptPool = self.prompter.create_prompt_template_pool()
         self.prompt_template: AudioLLMPrompt = self.prompt_template_pool.get_prompt_by_id(prompt_id=self.prompt_id)
-        self.evaluator_agent: EvaluatorBase = self.evaluation_agents[self.evaluator_type](logger=logger)
-        self.results_file_path = f"{configs.MODEL_TO_EVALUATE}_evaluation_ssr.json"
+        self.evaluator_agent: EvaluatorBase = self.evaluation_agents[self.evaluator_type][configs.TASK](logger=logger)
+        self.results_file_path = f"{configs.MODEL_TO_EVALUATE}_{STRESS_DS_MAP[configs.STRESS_TEST_DS]}_evaluation_{configs.TASK}.json"
 
-    def _evaluate_model_answer(self, input_prompt: str, audio_llm_output: str):
-        evaluation_prompt_kwargs = self.prompter.get_model_evaluation_input_prompt(
-            input_prompt=input_prompt, audio_llm_output=audio_llm_output
+    def _evaluate_model_answer(self, input_prompt: str, audio_llm_output: str, open_ended_kwargs: dict = None):
+        evaluation_prompt_kwargs = self.prompter.get_model_evaluation_input_kwargs(
+            input_prompt=input_prompt, audio_llm_output=audio_llm_output, open_ended_kwargs=open_ended_kwargs
         )
         return self.evaluator_agent.evaluate_answer(**evaluation_prompt_kwargs)
 
     def make_inference(self):
         self.logger.info(f"Making inference for ssr prompt, prompt id: {self.prompt_template.id}")
         initial_data = {
-            'dataset': "slprl/StressTest",
+            'dataset': configs.STRESS_TEST_DS,
             "model": f"{configs.MODEL_TO_EVALUATE}",
-            "evaluator_model": configs.JUDGE_MODEL_NAME,
+            "checkpoint": configs.STRESSLM_MODEL_CHECKPOINT if configs.MODEL_TO_EVALUATE == "stresslm" else None,
+            "evaluator_model": configs.JUDGE_MODEL_NAME if self.evaluator_type == "judge" else "custom",
+            "evaluator_type": self.evaluator_type,
             "evaluations": []
         }
 
@@ -58,7 +73,10 @@ class EvaluatorStressReasoning(EvaluationTaskBase):
             )
             answers = sample['possible_answers']
             gt_label_index = sample['label']
-
+            gt_intended_meaning = answers[gt_label_index]
+            gt_transcription = sample["transcription"]
+            gt_stressed_words = ", ".join(sample['stress_pattern']['words'])
+            
             # get input prompt
             input_prompt = self.prompter.create_model_input_prompt(
                 prompt_template=self.prompt_template.template,
@@ -76,10 +94,10 @@ class EvaluatorStressReasoning(EvaluationTaskBase):
             audio_llm_output = self.inference_client.predict(
                 **pred_input
             )
-
             # Evaluate with Judge
+            open_ended_kwargs = None if configs.TASK != "open_ssr" else {"gt_transcription": gt_transcription, "gt_stressed_words": gt_stressed_words, "gt_intended_meaning": gt_intended_meaning}
             evaluation_output = self._evaluate_model_answer(
-                input_prompt=input_prompt, audio_llm_output=audio_llm_output
+                input_prompt=input_prompt, audio_llm_output=audio_llm_output, open_ended_kwargs=open_ended_kwargs
             )
             # Save results
             results_data = storage_client.load_json(file_name=self.results_file_path)
@@ -107,9 +125,20 @@ class EvaluatorStressReasoning(EvaluationTaskBase):
                 correct += 1
         accuracy = correct / len(labels)
         return accuracy
+    
+    def _calculate_avarage_score(self, preds):
+        return sum(preds) / len(preds)
+    
+    def _get_final_score_by_task(self, preds, labels):
+        if configs.TASK == "ssr_accuracy":
+            return self._calculate_accuracy(preds=preds, labels=labels)
+        elif configs.TASK == "open_ssr":
+            return self._calculate_avarage_score(preds=preds)
+        else:
+            raise NotImplementedError(f"Task {configs.TASK} not implemented in result calculation.")
 
     def evaluate(self):
-        self.logger.info(f"Evaluating for prompt: {self.prompt_template.id}")
+        self.logger.info(f"Evaluating task {configs.TASK} with prompt: {self.prompt_template.id}")
         evaluations_data = storage_client.load_json(file_name=self.results_file_path)
         predictions_data = evaluations_data["evaluations"]
         preds_and_labels = [
@@ -118,17 +147,17 @@ class EvaluatorStressReasoning(EvaluationTaskBase):
         ]
 
         preds, labels = zip(*preds_and_labels)
-        accuracy = self._calculate_accuracy(preds=preds, labels=labels)
+        final_score = self._get_final_score_by_task(preds=preds, labels=labels)
 
         results = {
-            "task": "SSR",
+            "task": configs.TASK,
             "dataset": configs.STRESS_TEST_DS,
             "prompt_id": self.prompt_template.id,
             "n_samples": len(preds),
-            "description": f"StessTest Evaluation results for {configs.MODEL_TO_EVALUATE} with evaluator {self.evaluator_type}",
-            "ssr_accuracy": accuracy,
+            "description": f"{configs.TASK} on {STRESS_DS_MAP[configs.STRESS_TEST_DS]} evaluation results for {configs.MODEL_TO_EVALUATE} with evaluator {self.evaluator_type}",
+            "ssr_score": final_score,
         }
         self.logger.info(f"Results: {results}")
-        file_path = f"{configs.MODEL_TO_EVALUATE}_stresstest_ssr_evaluation_results.json"
+        file_path = f"{configs.MODEL_TO_EVALUATE}_{STRESS_DS_MAP[configs.STRESS_TEST_DS]}_{configs.TASK}_evaluation_results.json"
         storage_client.save_json(file_name=file_path, data=results)
         return results

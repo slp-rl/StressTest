@@ -12,3 +12,4 @@ openai==1.58.1
 tqdm==4.67.1
 numpy==1.26.4
 PyYAML==6.0.2
+wandb==0.21.0

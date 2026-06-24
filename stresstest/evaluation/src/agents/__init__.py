@@ -1,3 +1,4 @@
 from .evaluator_stresslm_reasoning import EvaluatorStresSLMReasoning
+from .evaluator_stresslm_detection import EvaluatorStresSLMDetection
 from .evaluator_judge import OpenAIEvaluatorAgent
 from .evaluator_agent_base import EvaluatorBase

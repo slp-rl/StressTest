@@ -15,7 +15,7 @@ if configs.MODEL_TO_EVALUATE == "qwen2audio":
 elif configs.MODEL_TO_EVALUATE == "stresslm":
     from .src.inference.inference_client_qwen2_audio import InferenceClientQwen2Audio
     logger.info("Using Qwen2Audio Inference Client for StressLM", context={"model": "stresslm"})
-    inference_client = InferenceClientQwen2Audio(logger=logger, stresslm=True)
+    inference_client = InferenceClientQwen2Audio(logger=logger, stresslm=True, stresslm_model_checkpoint=configs.STRESSLM_MODEL_CHECKPOINT)
 
 elif configs.MODEL_TO_EVALUATE == "gpt-4o-audio":
     from .src.inference.inference_client_gpt_audio_lm import InferenceClientGPTAudio

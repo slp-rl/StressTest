@@ -7,11 +7,11 @@ if __name__ == "__main__":
     from .src.evaluator import EvaluatorStressReasoning, EvaluatorStressDetection, EvaluationTaskBase
 
     task_to_evaluator_class = {
-        "ssr": EvaluatorStressReasoning,
+        "ssr_accuracy": EvaluatorStressReasoning,
+        "open_ssr": EvaluatorStressReasoning,
         "ssd": EvaluatorStressDetection
     }
-    evaluator_type = 'judge' # "judge", "stresslm_custom"
-    evaluator: EvaluationTaskBase = task_to_evaluator_class[configs.TASK](evaluator_type=evaluator_type)     
+    evaluator: EvaluationTaskBase = task_to_evaluator_class[configs.TASK](evaluator_type=configs.EVALUATOR_TYPE)     
     logger.info(f"Evaluating task: {configs.TASK}")
     
     evaluator.make_inference()

@@ -4,26 +4,28 @@ from ..data_models import EvaluationTaskOutput
 from .evaluator_agent_base import EvaluatorBase
 
 
-class EvaluatorStresSLMReasoning(EvaluatorBase):
+class EvaluatorStresSLMDetection(EvaluatorBase):
     def __init__(self, logger: Logger):
         self.logger = logger
-        self.logger.info("Initialized EvaluatorStresSLMReasoning answer parser.")
+        self.logger.info("Initialized EvaluatorStresSLMDetection answer parser.")
 
     def evaluate_answer(
         self, input_prompt: str, audio_llm_output: str, **kwargs
     ) -> EvaluationTaskOutput:
         self.logger.info(f"Starting evaluation for prompt: {input_prompt}")
         try:
-            # audio_llm_output is of the format: number. textual answer. example: "1. This is the intention.",
+            # audio_llm_output is of the format: ['word1', 'word2'] or ['word'] etc, given as a string. 
+            # example: "['this', 'and']"
+            # answer should be a list of words: ['this', 'and']
             self.logger.info(f"Audio LLM output: {audio_llm_output}")
-            match = re.match(r"(\d+)", audio_llm_output)
+            match = re.match(r"\[('.*?')\]", audio_llm_output)
             if not match:
-                self.logger.error("Failed to extract integer from audio LLM output.")
+                self.logger.error("Failed to extract word from audio LLM output.")
                 return EvaluationTaskOutput(answer=-1)
-            extracted_number = match.group(1)
-            self.logger.info(f"Extracted number: {extracted_number}")
-            # Convert the extracted number to an integer
-            answer = int(extracted_number)
+            extracted_words = match.group(1)
+            self.logger.info(f"Extracted words: {extracted_words}")
+            # Convert the extracted words to a list
+            answer = [word.strip("'") for word in extracted_words.split(", ")]
             self.logger.info(f"Final answer extracted: {answer}")
             return EvaluationTaskOutput(answer=answer)
             

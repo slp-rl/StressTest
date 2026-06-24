@@ -2,7 +2,7 @@ from datasets import load_dataset, concatenate_datasets, DatasetDict
 import re
 from typing import Self
 from pathlib import Path
-from training_prompter import PromptTemplateManager
+from .training_prompter import PromptTemplateManager
 
 CURRENT_DIR = Path(__file__).resolve().parent
 TRAINING_PROMPTS_PATH = f"{CURRENT_DIR}/training_prompts.yml"

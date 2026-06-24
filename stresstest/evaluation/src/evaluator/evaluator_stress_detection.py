@@ -160,6 +160,9 @@ class EvaluatorStressDetection:
         results = {
             "task": "SSD",
             "dataset": configs.STRESS_TEST_DS,
+            "model": f"{configs.MODEL_TO_EVALUATE}",
+            "checkpoint": configs.STRESSLM_MODEL_CHECKPOINT if configs.MODEL_TO_EVALUATE == "stresslm" else None,
+            "evaluator_model": configs.JUDGE_MODEL_NAME if self.evaluator_type == "judge" else "custom",
             "prompt_id": self.prompt_template.id,
             "description": f"{STRESS_DS_MAP[configs.STRESS_TEST_DS]} results for {configs.MODEL_TO_EVALUATE} on {configs.STRESS_TEST_DS} with evaluator {self.evaluator_type}",
             "ssd_metrics": ssd_metrics,

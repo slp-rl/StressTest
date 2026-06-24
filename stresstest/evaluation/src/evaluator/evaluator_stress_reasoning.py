@@ -152,6 +152,9 @@ class EvaluatorStressReasoning(EvaluationTaskBase):
         results = {
             "task": configs.TASK,
             "dataset": configs.STRESS_TEST_DS,
+            "model": f"{configs.MODEL_TO_EVALUATE}",
+            "checkpoint": configs.STRESSLM_MODEL_CHECKPOINT if configs.MODEL_TO_EVALUATE == "stresslm" else None,
+            "evaluator_model": configs.JUDGE_MODEL_NAME if self.evaluator_type == "judge" else "custom",
             "prompt_id": self.prompt_template.id,
             "n_samples": len(preds),
             "description": f"{configs.TASK} on {STRESS_DS_MAP[configs.STRESS_TEST_DS]} evaluation results for {configs.MODEL_TO_EVALUATE} with evaluator {self.evaluator_type}",

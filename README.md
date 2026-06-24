@@ -17,7 +17,7 @@ It includes:
 * Evaluation of our proposed model **StresSLM**.
 * Examples to run evaluation with two additional models.
 
-It also includes **Stress-17K** training data loading and augmentation script used to train **StresSLM**.
+It also includes **Stress-17K** training data loading and augmentation script used to train **StresSLM** and a staged sft script example to train your own stress-aware model.
 
 <p align="center">
   <img src="imgs/main_fig1.png" alt="StressTest Overview" width="100%" />
@@ -65,11 +65,28 @@ python -m stresstest.evaluation.main \
     --model_to_evaluate stresslm
 ```
 
-You can change the `--task` flag to `ssd` for the Sentence Stress Detection task.
-`--model_to_evaluate` can be one of the following `["stresslm", "qwen2audio", "gpt-4o-audio", "mock"]`.
+The `--task` flag supports three options:
 
-the script will create a `results/` directory at the project root to store evaluation outputs.
-The expected project structure is:
+SSR - Sentence Stress Reasoning:
+- `ssr_accuracy` — binary-choice SSR. Evaluates whether the model selects the correct answer (1–2).
+- `open_ssr` — open-ended SSR. A GPT-4o judge scores the model's free-form explanation of stress meaning.
+
+SSD - Sentence Stress Detection.
+- `ssd` — Evaluates which words the model identifies as stressed (precision/recall/F1).
+
+All available flags:
+
+| Flag | Choices / Default | Description |
+|---|---|---|
+| `--task` | `ssr_accuracy`, `open_ssr`, `ssd` | Evaluation task |
+| `--model_to_evaluate` | `stresslm`, `qwen2audio`, `gpt-4o-audio`, `mock` | Model to evaluate |
+| `--ds_name` | `stresstest` (default), `stresspresso` | Benchmark dataset |
+| `--evaluator_type` | `judge` (default), `stresslm_custom` | `judge` uses GPT-4o to score outputs; `stresslm_custom` uses regex-based parsing (no API key required) |
+| `--stresslm_model_checkpoint` | `slprl/StresSLM` (default) | HuggingFace model ID or local path to a StresSLM checkpoint |
+| `--results_path` | `results/` (default) | Directory to save evaluation outputs |
+
+The script will create a `results/` directory at the project root to store evaluation outputs.
+The expected project structure after evaluation is:
 
 ```
 StressTest
@@ -113,10 +130,8 @@ Then, register your model by updating the configs.py and clients.py files in the
 
 We release:
 
-* The synthetic training data `Stress-17K` used to train StresSLM (released).
-* The training script for finetuning on SSD and SSR (coming soon).
-
-Stay tuned!
+* The synthetic training data `Stress-17K` used to train StresSLM.
+* A training script example for staged training sft on SSD and SSR.
 
 ### 🧪 Synthetic Training Data — `Stress-17K`
 
@@ -149,6 +164,49 @@ StressTest
 ```
 
 Each sample can be augmented into multiple instruction-following formats defined in a YAML configuration. This YAML file is also located in the `stress_17k` directory and can be edited to add new tasks or modify existing ones.
+
+### 🚂 Running the Training Script
+
+We provide an example finetuning script using staged LoRA training on Stress-17K. Note that the released **StresSLM** model was trained with additional rehearsal data not included here — this script serves as a starting point for reproducing or adapting our training pipeline.
+
+```bash
+python -m stresstest.training.sft_example \
+  --experiment-name sft_example \
+  --lr 7e-5 \
+  --run-name stresslm-sft
+```
+
+Key arguments:
+
+| Argument | Default | Description |
+|---|---|---|
+| `--experiment-name` | `sft_example` | Name of the experiment (used for output directory) |
+| `--lr` | `2e-7` | Learning rate |
+| `--run-name` | `stresslm-sft` | Run name (used for W&B logging) |
+| `--report-to` | `none` | Set to `wandb` to enable W&B logging |
+
+To enable W&B logging, set your API key as an environment variable and pass `--report-to wandb`:
+
+```bash
+export WANDB_API_KEY=your_wandb_api_key
+python -m stresstest.training.sft_example \
+  --experiment-name sft_example \
+  --lr 7e-5 \
+  --run-name stresslm-sft \
+  --report-to wandb
+```
+
+Training uses a two-stage curriculum: first on the full Stress-17K dataset, then on a fine-grained subset. The base model is `Qwen/Qwen2-Audio-7B-Instruct` with LoRA applied to `q_proj` and `v_proj`. Training was run on a single L40S GPU.
+
+We also include `stresstest/training/sft_eval_example.sh` — an end-to-end shell script example that runs SFT training followed by evaluation on both `stresstest` and `stresspresso` benchmarks across SSD and SSR accuracy tasks.
+
+Checkpoints are saved under:
+
+```
+stresstest/training/experiments/<experiment-name>/<run-name>/
+```
+
+So with the example command above, checkpoints will be saved to `stresstest/training/experiments/sft_example/stresslm-sft/`.
 
 ---
 

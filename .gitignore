@@ -2,3 +2,6 @@
 .venv*
 .vscode
 results/*
+*playground*
+*wandb*
+stresstest/training/experiments

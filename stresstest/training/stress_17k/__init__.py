@@ -1,1 +1,1 @@
-from data_augmentation import DatasetAugmentation
+from .data_augmentation import DatasetAugmentation

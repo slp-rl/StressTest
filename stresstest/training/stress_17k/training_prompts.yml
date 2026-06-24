@@ -1,4 +1,4 @@
-# PRECISE ANSWER - E2E
+# PRECISE ANSWER - SSR
 - TASK: e2e_stress_meaning
   id: 1
   question: |
@@ -9,7 +9,7 @@
   answer: |
     {answer_label}. {correct_answer}
 
-# ELABORATED ANSWER
+# ELABORATED ANSWER - CoT SSR
 - TASK: elaborated_explanation
   id: 2
   question: |
@@ -20,7 +20,7 @@
   answer: |
     {description} Therefore, the correct answer is: {answer_label}. {correct_answer}
 
-# STRESS CASCADE REASONING
+# STRESS CASCADE REASONING - CoT SSD + SSR
 - TASK: cascade_reasoning
   id: 3
   question: |
@@ -32,7 +32,7 @@
     The speaker said "{transcription}" and emphasized "{emphasized_words}".
     Therefore, the correct answer is: {answer_label}. {correct_answer}
 
-# STRESS DETECTION
+# STRESS DETECTION - SSD
 - TASK: stress_detection
   id: 4
   question: |
